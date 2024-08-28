@@ -20,11 +20,8 @@
  * THE SOFTWARE.
  */
 
-#include <sstream>
-#include <string>
 #include <QPainter>
 #include <QTextStream>
-#include <QSvgRenderer>
 
 #include "QrCodeGenerator.h"
 
@@ -52,6 +49,22 @@ QImage QrCodeGenerator::generateQr(const QString &data, quint16 size, quint16 bo
     auto b = data.toUtf8();
     const auto qrCode = qrcodegen::QrCode::encodeText(b.constData(), errorCorrection);
     return qrCodeToImage(qrCode, borderSize, size);
+}
+
+/**
+     * @brief Paints a QR code from the given data and error correction level.
+     * @param painter The QPainter object to use.
+     * @param data The QString containing the data to encode in the QR code.
+     * @param size The desired width/height of the generated image (default: 500).
+     * @param borderSize The desired border width of the generated image (default: 1).
+     * @param errorCorrection The desired error correction level (default:
+     * qrcodegen::QrCode::Ecc::MEDIUM).
+     */
+void QrCodeGenerator::paintQr(QPainter *painter, const QString &data, const quint16 size, const quint16 borderSize, qrcodegen::QrCode::Ecc errorCorrection)
+{
+    auto b = data.toUtf8();
+    const auto qrCode = qrcodegen::QrCode::encodeText(b.constData(), errorCorrection);
+    qrCodePaint(painter, qrCode, borderSize, size);
 }
 
 /**
@@ -103,6 +116,33 @@ QString QrCodeGenerator::toSvgString(const qrcodegen::QrCode &qr, quint16 border
 }
 
 /**
+     * @brief Paints a qrcodegen::QrCode object with a QPainter.
+     * @param painter The QPainter object to use.
+     * @param qrCode The qrcodegen::QrCode object to convert.
+     * @param size The desired width/height of the generated image.
+     * @param borderSize The desired border width of the generated image.
+     */
+void QrCodeGenerator::qrCodePaint(QPainter *painter, const qrcodegen::QrCode &qrCode, quint16 border, const quint16 size) const
+{
+    qreal scale = qreal(size) / (qrCode.getSize()+2*border);
+    painter->scale(scale,scale);
+    painter->translate(border-0.02,border-0.02);
+
+    for (int y = 0; y < qrCode.getSize(); y++)
+    {
+        for (int x = 0; x < qrCode.getSize(); x++)
+        {
+            if (qrCode.getModule(x, y))
+            {
+                QRectF rect(x, y, 1.04, 1.04);
+                painter->drawRect(rect);
+            }
+        }
+    }
+
+}
+
+/**
  * @brief Converts a QR code to a QImage.
  * @param qrCode The QR code to convert.
  * @param border The border size to use.
@@ -112,12 +152,20 @@ QString QrCodeGenerator::toSvgString(const qrcodegen::QrCode &qr, quint16 border
 QImage QrCodeGenerator::qrCodeToImage(const qrcodegen::QrCode &qrCode, quint16 border,
                                       quint16 size) const
 {
-    QString svg = toSvgString(qrCode, border);
-    QSvgRenderer render(svg.toUtf8());
-    QImage image(size, size, QImage::Format_Mono);
+    QImage image(size, size, QImage::Format_ARGB32);
     image.fill(Qt::white);
     QPainter painter(&image);
-    painter.setRenderHint(QPainter::Antialiasing);
-    render.render(&painter);
+
+    QBrush brush(Qt::SolidPattern);
+    brush.setColor(Qt::black);
+    painter.setBrush(brush);
+    painter.setPen(QPen(Qt::NoPen));
+
+    //    painter.setRenderHint(QPainter::Antialiasing);
+
+    qrCodePaint(&painter,qrCode,border,size);
+
+    painter.end();
+
     return image;
 }

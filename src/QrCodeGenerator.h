@@ -55,6 +55,19 @@ public:
     QImage generateQr(const QString &data, const quint16 size = 1000, const quint16 borderSize = 1,
                       qrcodegen::QrCode::Ecc errorCorrection = qrcodegen::QrCode::Ecc::MEDIUM);
 
+
+    /**
+     * @brief Paints a QR code from the given data and error correction level.
+     * @param painter The QPainter object to use.
+     * @param data The QString containing the data to encode in the QR code.
+     * @param size The desired width/height of the generated image (default: 500).
+     * @param borderSize The desired border width of the generated image (default: 1).
+     * @param errorCorrection The desired error correction level (default:
+     * qrcodegen::QrCode::Ecc::MEDIUM).
+     */
+    void paintQr(QPainter* painter, const QString &data, const quint16 size = 1000, const quint16 borderSize = 1,
+                      qrcodegen::QrCode::Ecc errorCorrection = qrcodegen::QrCode::Ecc::MEDIUM);
+
     /**
      * @brief Generates a QR code from the given data and error correction level.
      * @param data The QString containing the data to encode in the QR code.
@@ -76,6 +89,15 @@ private:
      * @return SVG containing the QR code.
      */
     QString toSvgString(const qrcodegen::QrCode &qr, quint16 border) const;
+
+    /**
+     * @brief Paints a qrcodegen::QrCode object with a QPainter.
+     * @param painter The QPainter object to use.
+     * @param qrCode The qrcodegen::QrCode object to convert.
+     * @param size The desired width/height of the generated image.
+     * @param borderSize The desired border width of the generated image.
+     */
+    void qrCodePaint(QPainter* painter,const qrcodegen::QrCode &qrCode, quint16 border, const quint16 size) const;
 
     /**
      * @brief Converts a qrcodegen::QrCode object to a QImage.

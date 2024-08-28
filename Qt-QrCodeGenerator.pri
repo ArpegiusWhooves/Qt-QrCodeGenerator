@@ -20,7 +20,7 @@
 # THE SOFTWARE.
 #
 
-QT += core gui svg
+QT += core gui
 
 INCLUDEPATH += $$PWD/src
 
